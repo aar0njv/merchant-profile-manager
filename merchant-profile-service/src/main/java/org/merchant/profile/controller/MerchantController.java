@@ -31,7 +31,7 @@ public class MerchantController {
 
     @GET
     @Path("/{id}")
-    public Response getMerchantById(@PathParam("id") UUID id) {
+    public Response getMerchantById(@PathParam("id") String id) {
         try {
             Merchant merchant = merchantService.getMerchantById(id);
             return Response.ok(merchant).build();
@@ -42,13 +42,16 @@ public class MerchantController {
 
     @POST
     public Response createMerchant(MerchantRequest request) {
-        Merchant createdMerchant = merchantService.createMerchant(request.name(), request.email());
+
+        String id = (request.id() == null || request.id().isBlank()) ? UUID.randomUUID().toString() : request.id();
+
+        Merchant createdMerchant = merchantService.createMerchant(id, request.name(), request.email());
         return Response.status(Response.Status.CREATED).entity(createdMerchant).build();
     }
 
     @PUT
     @Path("/{id}")
-    public Response updateMerchant(@PathParam("id") UUID id, MerchantRequest request) {
+    public Response updateMerchant(@PathParam("id") String id, MerchantRequest request) {
         try {
             Merchant updatedMerchant = merchantService.updateMerchant(id, request.name(), request.email(), request.status());
             return Response.ok(updatedMerchant).build();
@@ -59,7 +62,7 @@ public class MerchantController {
 
     @DELETE
     @Path("/{id}")
-    public Response deleteMerchant(@PathParam("id") UUID id) {
+    public Response deleteMerchant(@PathParam("id") String id) {
         try {
             Merchant deletedMerchant = merchantService.deleteMerchant(id);
             return Response.ok(deletedMerchant).build();
@@ -70,7 +73,7 @@ public class MerchantController {
 
     @GET
     @Path("/{id}/status")
-    public Response getMerchantStatus(@PathParam("id") UUID id) {
+    public Response getMerchantStatus(@PathParam("id") String id) {
         try {
             MerchantStatus status = merchantService.getMerchantStatus(id);
             return Response.ok(new StatusResponse(status)).build();

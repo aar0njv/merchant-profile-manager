@@ -5,7 +5,7 @@ import java.time.Instant;
 import java.util.UUID;
 
 public record Merchant(
-        UUID id,
+        String id,
         String name,
         String email,
         MerchantStatus status,

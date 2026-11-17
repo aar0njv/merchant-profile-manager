@@ -15,13 +15,13 @@ import java.util.concurrent.ConcurrentHashMap;
 @ApplicationScoped
 public class MerchantService {
 
-    private final Map<UUID, Merchant> database = new ConcurrentHashMap<>();
+    private final Map<String, Merchant> database = new ConcurrentHashMap<>();
 
     public List<Merchant> getAllMerchants() {
         return new ArrayList<>(database.values());
     }
 
-    public Merchant getMerchantById(UUID id) {
+    public Merchant getMerchantById(String id) {
         Merchant merchant = database.get(id);
         if(merchant == null) {
             throw new IllegalArgumentException("Merchant not Found");
@@ -29,15 +29,19 @@ public class MerchantService {
         return merchant;
     }
 
-    public Merchant createMerchant(String name, String email) {
-        UUID id = UUID.randomUUID();
+    public Merchant createMerchant(String id, String name, String email) {
+
+        if (database.containsKey(id)) {
+            throw new IllegalArgumentException("Merchant with ID " + id + "already exists");
+        }
+
         Instant now = Instant.now();
         Merchant merchant = new Merchant(id, name, email, MerchantStatus.PENDING, now, now);
         database.put(id, merchant);
         return merchant;
     }
 
-    public Merchant updateMerchant(UUID id, String name, String email, MerchantStatus status) {
+    public Merchant updateMerchant(String id, String name, String email, MerchantStatus status) {
         Merchant existingMerchant = database.get(id);
         if (existingMerchant == null) {
             throw new IllegalArgumentException("Merchant not found");
@@ -53,7 +57,7 @@ public class MerchantService {
         return updatedMerchant;
     }
 
-    public Merchant deleteMerchant(UUID id) {
+    public Merchant deleteMerchant(String id) {
         Merchant existingMerchant = database.get(id);
         if (existingMerchant == null) {
             throw new IllegalArgumentException("Merchant not found");
@@ -62,7 +66,7 @@ public class MerchantService {
         return existingMerchant;
     }
 
-    public MerchantStatus getMerchantStatus(UUID id) {
+    public MerchantStatus getMerchantStatus(String id) {
         Merchant merchant = database.get(id);
         if (merchant == null) {
             throw new IllegalArgumentException("Merchant not found");
