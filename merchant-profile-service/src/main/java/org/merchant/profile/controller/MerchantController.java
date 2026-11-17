@@ -32,54 +32,37 @@ public class MerchantController {
     @GET
     @Path("/{id}")
     public Response getMerchantById(@PathParam("id") String id) {
-        try {
-            Merchant merchant = merchantService.getMerchantById(id);
-            return Response.ok(merchant).build();
-        } catch (IllegalArgumentException e) {
-            return Response.status(Response.Status.NOT_FOUND).entity(e.getMessage()).build();
-        }
+        Merchant merchant = merchantService.getMerchantById(id);
+        return Response.ok(merchant).build();
     }
 
     @POST
     public Response createMerchant(MerchantRequest request) {
-
         String id = (request.id() == null || request.id().isBlank()) ? UUID.randomUUID().toString() : request.id();
-
         Merchant createdMerchant = merchantService.createMerchant(id, request.name(), request.email());
         return Response.status(Response.Status.CREATED).entity(createdMerchant).build();
     }
+    
 
     @PUT
     @Path("/{id}")
     public Response updateMerchant(@PathParam("id") String id, MerchantRequest request) {
-        try {
-            Merchant updatedMerchant = merchantService.updateMerchant(id, request.name(), request.email(), request.status());
-            return Response.ok(updatedMerchant).build();
-        } catch (IllegalArgumentException e) {
-            return Response.status(Response.Status.NOT_FOUND).entity(e.getMessage()).build();
-        }
+        Merchant updatedMerchant = merchantService.updateMerchant(id, request.name(), request.email(), request.status());
+        return Response.ok(updatedMerchant).build();
     }
 
     @DELETE
     @Path("/{id}")
     public Response deleteMerchant(@PathParam("id") String id) {
-        try {
-            Merchant deletedMerchant = merchantService.deleteMerchant(id);
-            return Response.ok(deletedMerchant).build();
-        } catch (IllegalArgumentException e) {
-            return Response.status(Response.Status.NOT_FOUND).entity(e.getMessage()).build();
-        }
+        Merchant deletedMerchant = merchantService.deleteMerchant(id);
+        return Response.ok(deletedMerchant).build();
     }
 
     @GET
     @Path("/{id}/status")
     public Response getMerchantStatus(@PathParam("id") String id) {
-        try {
-            MerchantStatus status = merchantService.getMerchantStatus(id);
-            return Response.ok(new StatusResponse(status)).build();
-        } catch (IllegalArgumentException e) {
-            return Response.status(Response.Status.NOT_FOUND).entity(e.getMessage()).build();
-        }
+        MerchantStatus status = merchantService.getMerchantStatus(id);
+        return Response.ok(new StatusResponse(status)).build();
     }
 
     public record StatusResponse(MerchantStatus status) {}
