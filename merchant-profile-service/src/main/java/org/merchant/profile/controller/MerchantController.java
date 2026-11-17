@@ -9,6 +9,7 @@ import org.merchant.profile.service.MerchantService;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import jakarta.validation.Valid;
 
 import java.util.List;
 import java.util.UUID;
@@ -37,7 +38,7 @@ public class MerchantController {
     }
 
     @POST
-    public Response createMerchant(MerchantRequest request) {
+    public Response createMerchant(@Valid MerchantRequest request) {
         String id = (request.id() == null || request.id().isBlank()) ? UUID.randomUUID().toString() : request.id();
         Merchant createdMerchant = merchantService.createMerchant(id, request.name(), request.email());
         return Response.status(Response.Status.CREATED).entity(createdMerchant).build();
@@ -46,7 +47,7 @@ public class MerchantController {
 
     @PUT
     @Path("/{id}")
-    public Response updateMerchant(@PathParam("id") String id, MerchantRequest request) {
+    public Response updateMerchant(@PathParam("id") String id, @Valid MerchantRequest request) {
         Merchant updatedMerchant = merchantService.updateMerchant(id, request.name(), request.email(), request.status());
         return Response.ok(updatedMerchant).build();
     }

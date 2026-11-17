@@ -3,6 +3,7 @@
 package org.merchant.profile.exception;
 
 import jakarta.ws.rs.core.Response;
+import jakarta.validation.ConstraintViolationException;
 import org.jboss.resteasy.reactive.server.ServerExceptionMapper;
 
 public class ExceptionHandler {
@@ -25,6 +26,17 @@ public class ExceptionHandler {
             "An unexpected error occurred. Please try again later."
         );
         return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                       .entity(errorResponse)
+                       .build();
+    }
+
+    @ServerExceptionMapper 
+    public Response handleValidationException(ConstraintViolationException e) {
+        ErrorResponse errorResponse = new ErrorResponse(Response.Status.BAD_REQUEST.getStatusCode(),
+            "Validation Error",
+            e.getMessage()
+        );
+        return Response.status(Response.Status.BAD_REQUEST)
                        .entity(errorResponse)
                        .build();
     }
