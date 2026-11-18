@@ -59,6 +59,12 @@ public class MerchantController {
         return Response.ok(deletedMerchant).build();
     }
 
+    @DELETE
+    public Response deleteAllMerchants() {
+        merchantService.deleteAllMerchants();
+        return Response.noContent().build();
+    }
+
     @GET
     @Path("/{id}/status")
     public Response getMerchantStatus(@PathParam("id") String id) {
