@@ -11,9 +11,7 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.validation.Valid;
 
-import java.util.List;
 import java.util.UUID;
-
 import io.smallrye.mutiny.Uni;
 
 @Path("/merchants")
