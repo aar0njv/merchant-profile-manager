@@ -14,6 +14,8 @@ import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
 
+import io.smallrye.mutiny.Uni;
+
 @Path("/merchants")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
@@ -32,9 +34,8 @@ public class MerchantController {
 
     @GET
     @Path("/{id}")
-    public Response getMerchantById(@PathParam("id") String id) {
-        Merchant merchant = merchantService.getMerchantById(id);
-        return Response.ok(merchant).build();
+    public Uni<Response> getMerchantById(@PathParam("id") String id) {
+        return merchantService.getMerchantById(id).map(merchant -> Response.ok(merchant).build());
     }
 
     @POST

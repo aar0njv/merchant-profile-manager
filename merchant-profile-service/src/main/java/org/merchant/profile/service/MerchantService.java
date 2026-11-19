@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import io.smallrye.mutiny.Uni;
+
 import org.jboss.logging.Logger;
 
 @ApplicationScoped
@@ -23,6 +25,13 @@ public class MerchantService {
         return new ArrayList<>(database.values());
     }
 
+
+    public Uni<Merchant> getMerchantById(String id) {
+        return Uni.createFrom().item(() -> database.get(id)).onItem().ifNull()
+                            .failWith(() -> new IllegalArgumentException("Merchant Not Found"));
+    }
+    
+    /* 
     public Merchant getMerchantById(String id) {
         Merchant merchant = database.get(id);
         if(merchant == null) {
@@ -30,6 +39,7 @@ public class MerchantService {
         }
         return merchant;
     }
+    */
 
     public Merchant createMerchant(String id, String name, String email) {
 
