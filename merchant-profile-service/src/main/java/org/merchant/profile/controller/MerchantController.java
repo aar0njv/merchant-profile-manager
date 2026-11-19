@@ -28,8 +28,9 @@ public class MerchantController {
     }
 
     @GET
-    public List<Merchant> getAllMerchants() {
-        return merchantService.getAllMerchants();
+    public Uni<Response> getAllMerchants() {
+        return merchantService.getAllMerchants()
+            .map(merchants -> Response.ok(merchants).build());
     }
 
     @GET
@@ -39,38 +40,40 @@ public class MerchantController {
     }
 
     @POST
-    public Response createMerchant(@Valid MerchantRequest request) {
+    public Uni<Response> createMerchant(@Valid MerchantRequest request) {
         String id = (request.id() == null || request.id().isBlank()) ? UUID.randomUUID().toString() : request.id();
-        Merchant createdMerchant = merchantService.createMerchant(id, request.name(), request.email());
-        return Response.status(Response.Status.CREATED).entity(createdMerchant).build();
+        return merchantService.createMerchant(id, request.name(), request.email())
+            .map(createdMerchant -> Response.status(Response.Status.CREATED).entity(createdMerchant).build());
     }
-    
 
     @PUT
     @Path("/{id}")
-    public Response updateMerchant(@PathParam("id") String id, @Valid MerchantRequest request) {
-        Merchant updatedMerchant = merchantService.updateMerchant(id, request.name(), request.email(), request.status());
-        return Response.ok(updatedMerchant).build();
+    public Uni<Response> updateMerchant(@PathParam("id") String id, @Valid MerchantRequest request) {
+        return merchantService.updateMerchant(id, request.name(),request.email(), request.status())
+            .map(updatedMerchant -> Response.ok(updatedMerchant).build());
     }
 
     @DELETE
     @Path("/{id}")
-    public Response deleteMerchant(@PathParam("id") String id) {
-        Merchant deletedMerchant = merchantService.deleteMerchant(id);
-        return Response.ok(deletedMerchant).build();
+    public Uni<Response> deleteMerchant(@PathParam("id") String id) {
+        return merchantService.deleteMerchant(id)
+            .map(deletedMerchant -> Response.ok(deletedMerchant).build());
     }
 
     @DELETE
-    public Response deleteAllMerchants() {
-        merchantService.deleteAllMerchants();
-        return Response.noContent().build();
+    public Uni<Response> deleteAllMerchants() {
+        return merchantService.deleteAllMerchants()
+            .replaceWith(Response.noContent().build());
     }
 
     @GET
     @Path("/{id}/status")
-    public Response getMerchantStatus(@PathParam("id") String id) {
-        MerchantStatus status = merchantService.getMerchantStatus(id);
-        return Response.ok(new StatusResponse(status)).build();
+    public Uni<Response> getMerchantStatus(@PathParam("id") String id) {
+        return merchantService.getMerchantStatus(id)
+            .map(StatusResponse::new)
+            .map(statusResponse ->
+                Response.ok(statusResponse).build()
+            );
     }
 
     public record StatusResponse(MerchantStatus status) {}
