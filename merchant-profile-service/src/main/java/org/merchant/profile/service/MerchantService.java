@@ -22,7 +22,9 @@ public class MerchantService {
     private final Map<String, Merchant> database = new ConcurrentHashMap<>();
 
     public Uni<List<Merchant>> getAllMerchants() {
-        return Uni.createFrom().item(() -> new ArrayList<>(database.values()));
+        return Uni.createFrom().item(() -> 
+            new ArrayList<>(database.values())
+        );
     }
 
 
@@ -30,32 +32,25 @@ public class MerchantService {
         return Uni.createFrom().item(() -> database.get(id)).onItem().ifNull()
                             .failWith(() -> new IllegalArgumentException("Merchant Not Found"));
     }
-    
-    /* 
-    public Merchant getMerchantById(String id) {
-        Merchant merchant = database.get(id);
-        if(merchant == null) {
-            throw new IllegalArgumentException("Merchant not Found");
-        }
-        return merchant;
-    }
-    */
 
     public Uni<Merchant> createMerchant(String id, String name, String email) {
 
         return Uni.createFrom().item(() -> {
-            if(database.containsKey(id)) {
-                throw new IllegalArgumentException("Merchant with id " + id + " already exists");
+            if (database.containsKey(id)) {
+                throw new IllegalArgumentException(
+                    "Merchant with id " + id + " already exists"
+                );
             }
 
             Instant now = Instant.now();
             Merchant merchant = new Merchant(id, name, email, MerchantStatus.PENDING, now, now);
             database.put(id, merchant);
-            LOG.infof("Order %s saved", merchant.id());
             return merchant;
-
-        });
-
+        }).onItem().invoke(merchant ->
+            LOG.infof("Merchant %s saved", merchant.id())
+        ).onFailure().invoke(failure ->
+            LOG.errorf(failure, "Failed to create merchant with id %s", id)
+        );
     }
 
     public Uni<Merchant> updateMerchant(String id, String name, String email, MerchantStatus status) {
@@ -72,7 +67,11 @@ public class MerchantService {
                     );
                 database.put(id, updatedMerchant);
                 return updatedMerchant;
-                });
+                }).onItem().invoke(merchant ->
+                    LOG.infof("Merchant %s updated successfully", merchant.id())
+                ).onFailure().invoke(failure ->
+                    LOG.errorf(failure,"Failed to update merchant %s", id)
+                );
     }
 
     public Uni<Merchant> deleteMerchant(String id) {
@@ -80,18 +79,23 @@ public class MerchantService {
                 .map(existingMerchant -> {
                     database.remove(id);
                     return existingMerchant;
-                });
+                }).onItem().invoke(merchant ->
+                    LOG.infof("Merchant %s deleted successfully", merchant.id())
+                );
     }
 
-    public void deleteAllMerchants() {
-        int count = database.size();
-        database.clear();
-        LOG.infof("All %s merchants have been deleted", count);
+    public Uni<Void> deleteAllMerchants() {
+        return Uni.createFrom().item(() -> {
+            int count = database.size();
+            database.clear();
+            LOG.infof("All %s merchants have been deleted", count);
+            return null;
+        });
     }
 
     public Uni<MerchantStatus> getMerchantStatus(String id) {
         return getMerchantById(id)
-                .map(Merchant::status);
+            .map(Merchant::status);
     }
 
 
