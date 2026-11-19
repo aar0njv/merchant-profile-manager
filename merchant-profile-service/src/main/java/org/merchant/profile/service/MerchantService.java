@@ -21,8 +21,8 @@ public class MerchantService {
     private static final Logger LOG = Logger.getLogger(MerchantService.class);
     private final Map<String, Merchant> database = new ConcurrentHashMap<>();
 
-    public List<Merchant> getAllMerchants() {
-        return new ArrayList<>(database.values());
+    public Uni<List<Merchant>> getAllMerchants() {
+        return Uni.createFrom().item(() -> new ArrayList<>(database.values()));
     }
 
 
@@ -41,44 +41,46 @@ public class MerchantService {
     }
     */
 
-    public Merchant createMerchant(String id, String name, String email) {
+    public Uni<Merchant> createMerchant(String id, String name, String email) {
 
-        if (database.containsKey(id)) {
-            throw new IllegalArgumentException("Merchant with ID " + id + " already exists");
-        }
+        return Uni.createFrom().item(() -> {
+            if(database.containsKey(id)) {
+                throw new IllegalArgumentException("Merchant with id " + id + " already exists");
+            }
 
-        Instant now = Instant.now();
-        Merchant merchant = new Merchant(id, name, email, MerchantStatus.PENDING, now, now);
-        database.put(id, merchant);
-        LOG.infof("Order %s saved", merchant.id());
-        return merchant;
+            Instant now = Instant.now();
+            Merchant merchant = new Merchant(id, name, email, MerchantStatus.PENDING, now, now);
+            database.put(id, merchant);
+            LOG.infof("Order %s saved", merchant.id());
+            return merchant;
+
+        });
+
     }
 
-    public Merchant updateMerchant(String id, String name, String email, MerchantStatus status) {
-        Merchant existingMerchant = database.get(id);
-        if (existingMerchant == null) {
-            throw new IllegalArgumentException("Merchant not found");
-        }
-        Instant now = Instant.now();
-        Merchant updatedMerchant = new Merchant(id, 
-            name != null ? name : existingMerchant.name(), 
-            email != null ? email : existingMerchant.email(), 
-            status != null ? status : existingMerchant.status(), 
-            existingMerchant.createdAt(), now);
-            
-        database.put(id, updatedMerchant);
-        LOG.infof("Merchant $s updated", id);
-        return updatedMerchant;
+    public Uni<Merchant> updateMerchant(String id, String name, String email, MerchantStatus status) {
+        return getMerchantById(id)
+                .map(existingMerchant -> {
+                    Instant now = Instant.now();
+                    Merchant updatedMerchant = new Merchant(
+                        id,
+                        name != null ? name : existingMerchant.name(),
+                        email != null ? email : existingMerchant.email(),
+                        status != null ? status : existingMerchant.status(),
+                        existingMerchant.createdAt(),
+                        now
+                    );
+                database.put(id, updatedMerchant);
+                return updatedMerchant;
+                });
     }
 
-    public Merchant deleteMerchant(String id) {
-        Merchant existingMerchant = database.get(id);
-        if (existingMerchant == null) {
-            throw new IllegalArgumentException("Merchant not found");
-        }
-        database.remove(id);
-        LOG.infof("Merchant %s deleted", id);
-        return existingMerchant;
+    public Uni<Merchant> deleteMerchant(String id) {
+        return getMerchantById(id)
+                .map(existingMerchant -> {
+                    database.remove(id);
+                    return existingMerchant;
+                });
     }
 
     public void deleteAllMerchants() {
@@ -87,12 +89,9 @@ public class MerchantService {
         LOG.infof("All %s merchants have been deleted", count);
     }
 
-    public MerchantStatus getMerchantStatus(String id) {
-        Merchant merchant = database.get(id);
-        if (merchant == null) {
-            throw new IllegalArgumentException("Merchant not found");
-        }
-        return merchant.status();
+    public Uni<MerchantStatus> getMerchantStatus(String id) {
+        return getMerchantById(id)
+                .map(Merchant::status);
     }
 
 
