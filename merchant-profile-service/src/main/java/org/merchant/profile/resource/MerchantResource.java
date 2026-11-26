@@ -1,9 +1,9 @@
 
-package org.merchant.profile.controller;
+package org.merchant.profile.resource;
 
 import org.merchant.profile.model.Merchant;
 import org.merchant.profile.model.MerchantRequest;
-import org.merchant.profile.model.MerchantStatus;
+import org.merchant.profile.model.enums.MerchantStatus;
 import org.merchant.profile.service.MerchantService;
 
 import jakarta.ws.rs.*;
@@ -17,11 +17,11 @@ import io.smallrye.mutiny.Uni;
 @Path("/merchants")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-public class MerchantController {
+public class MerchantResource {
 
     private final MerchantService merchantService;
 
-    public MerchantController(MerchantService merchantService) {
+    public MerchantResource(MerchantService merchantService) {
         this.merchantService = merchantService;
     }
 

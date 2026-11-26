@@ -1,6 +1,8 @@
 
 package org.merchant.profile.model;
 
+import org.merchant.profile.model.enums.MerchantStatus;
+
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 

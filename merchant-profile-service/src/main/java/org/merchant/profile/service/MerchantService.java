@@ -3,7 +3,7 @@ package org.merchant.profile.service;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import org.merchant.profile.model.Merchant;
-import org.merchant.profile.model.MerchantStatus;
+import org.merchant.profile.model.enums.MerchantStatus;
 
 import java.time.Instant;
 import java.util.ArrayList;

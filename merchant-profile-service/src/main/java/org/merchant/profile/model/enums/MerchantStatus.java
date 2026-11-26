@@ -1,5 +1,5 @@
 
-package org.merchant.profile.model;
+package org.merchant.profile.model.enums;
 
 public enum MerchantStatus {
     PENDING,
