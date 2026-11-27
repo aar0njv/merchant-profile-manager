@@ -11,8 +11,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import io.smallrye.mutiny.Uni;
-
 import org.jboss.logging.Logger;
 
 @ApplicationScoped
@@ -21,81 +19,70 @@ public class MerchantService {
     private static final Logger LOG = Logger.getLogger(MerchantService.class);
     private final Map<String, Merchant> database = new ConcurrentHashMap<>();
 
-    public Uni<List<Merchant>> getAllMerchants() {
-        return Uni.createFrom().item(() -> 
-            new ArrayList<>(database.values())
-        );
+    public List<Merchant> getAllMerchants() {
+        return new ArrayList<>(database.values());
     }
 
-
-    public Uni<Merchant> getMerchantById(String id) {
-        return Uni.createFrom().item(() -> database.get(id)).onItem().ifNull()
-                            .failWith(() -> new IllegalArgumentException("Merchant Not Found"));
+    public Merchant getMerchantById(String id) {
+        Merchant merchant = database.get(id);
+        if (merchant == null) {
+            throw new IllegalArgumentException("Merchant Not Found");
+        }
+        return merchant;
     }
 
-    public Uni<Merchant> createMerchant(String id, String name, String email) {
+    public Merchant createMerchant(String id, String name, String email) {
+        if (database.containsKey(id)) {
+            IllegalArgumentException failure = new IllegalArgumentException(
+                "Merchant with id " + id + " already exists"
+            );
+            LOG.errorf(failure, "Failed to create merchant with id %s", id);
+            throw failure;
+        }
 
-        return Uni.createFrom().item(() -> {
-            if (database.containsKey(id)) {
-                throw new IllegalArgumentException(
-                    "Merchant with id " + id + " already exists"
-                );
-            }
+        Instant now = Instant.now();
+        Merchant merchant = new Merchant(id, name, email, MerchantStatus.PENDING, now, now);
+        database.put(id, merchant);
+        LOG.infof("Merchant %s saved", merchant.id());
+        return merchant;
+    }
 
+    public Merchant updateMerchant(String id, String name, String email, MerchantStatus status) {
+        try {
+            Merchant existingMerchant = getMerchantById(id);
             Instant now = Instant.now();
-            Merchant merchant = new Merchant(id, name, email, MerchantStatus.PENDING, now, now);
-            database.put(id, merchant);
-            return merchant;
-        }).onItem().invoke(merchant ->
-            LOG.infof("Merchant %s saved", merchant.id())
-        ).onFailure().invoke(failure ->
-            LOG.errorf(failure, "Failed to create merchant with id %s", id)
-        );
+            Merchant updatedMerchant = new Merchant(
+                id,
+                name != null ? name : existingMerchant.name(),
+                email != null ? email : existingMerchant.email(),
+                status != null ? status : existingMerchant.status(),
+                existingMerchant.createdAt(),
+                now
+            );
+            database.put(id, updatedMerchant);
+            LOG.infof("Merchant %s updated successfully", updatedMerchant.id());
+            return updatedMerchant;
+        } catch (RuntimeException failure) {
+            LOG.errorf(failure, "Failed to update merchant %s", id);
+            throw failure;
+        }
     }
 
-    public Uni<Merchant> updateMerchant(String id, String name, String email, MerchantStatus status) {
-        return getMerchantById(id)
-                .map(existingMerchant -> {
-                    Instant now = Instant.now();
-                    Merchant updatedMerchant = new Merchant(
-                        id,
-                        name != null ? name : existingMerchant.name(),
-                        email != null ? email : existingMerchant.email(),
-                        status != null ? status : existingMerchant.status(),
-                        existingMerchant.createdAt(),
-                        now
-                    );
-                database.put(id, updatedMerchant);
-                return updatedMerchant;
-                }).onItem().invoke(merchant ->
-                    LOG.infof("Merchant %s updated successfully", merchant.id())
-                ).onFailure().invoke(failure ->
-                    LOG.errorf(failure,"Failed to update merchant %s", id)
-                );
+    public Merchant deleteMerchant(String id) {
+        Merchant existingMerchant = getMerchantById(id);
+        database.remove(id);
+        LOG.infof("Merchant %s deleted successfully", existingMerchant.id());
+        return existingMerchant;
     }
 
-    public Uni<Merchant> deleteMerchant(String id) {
-        return getMerchantById(id)
-                .map(existingMerchant -> {
-                    database.remove(id);
-                    return existingMerchant;
-                }).onItem().invoke(merchant ->
-                    LOG.infof("Merchant %s deleted successfully", merchant.id())
-                );
+    public void deleteAllMerchants() {
+        int count = database.size();
+        database.clear();
+        LOG.infof("All %s merchants have been deleted", count);
     }
 
-    public Uni<Void> deleteAllMerchants() {
-        return Uni.createFrom().item(() -> {
-            int count = database.size();
-            database.clear();
-            LOG.infof("All %s merchants have been deleted", count);
-            return null;
-        });
-    }
-
-    public Uni<MerchantStatus> getMerchantStatus(String id) {
-        return getMerchantById(id)
-            .map(Merchant::status);
+    public MerchantStatus getMerchantStatus(String id) {
+        return getMerchantById(id).status();
     }
 
 
